@@ -107,18 +107,18 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
 .session-time{color:var(--text3);font-size:.85em;white-space:nowrap;min-width:22px;text-align:right}
 
 /* Task log */
-.task-item{padding:4px 6px;border-radius:3px;flex-shrink:0;border-left:3px solid var(--text3);background:rgba(255,255,255,.01)}
+.task-item{padding:6px 8px;border-radius:3px;flex-shrink:0;border-left:3px solid var(--text3);background:rgba(255,255,255,.01)}
 .task-item.task-active{border-left-color:var(--green);background:rgba(0,255,136,.05)}
 .task-item.task-active .task-status{color:var(--green);text-shadow:0 0 6px var(--green)}
 .task-item.task-recent{border-left-color:var(--cyan);background:rgba(0,240,255,.03)}
 .task-item.task-recent .task-status{color:var(--cyan)}
 .task-item.task-done .task-status{color:var(--text3)}
-.task-main{display:flex;align-items:center;gap:5px;font-size:.6em}
-.task-time{color:var(--text3);white-space:nowrap;min-width:50px;font-variant-numeric:tabular-nums}
-.task-desc{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.task-status{font-size:.85em;font-weight:500;white-space:nowrap;padding:0 4px;border-radius:2px;background:rgba(255,255,255,.04)}
+.task-header{display:flex;align-items:center;gap:5px;font-size:.55em;margin-bottom:3px}
+.task-time{color:var(--text3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.task-desc{font-size:.6em;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.task-status{font-size:.85em;font-weight:500;white-space:nowrap;padding:0 4px;border-radius:2px;background:rgba(255,255,255,.04);margin-left:auto}
 .task-tools{font-size:.85em;color:var(--purple);white-space:nowrap}
-.task-result{font-size:.52em;color:var(--text2);margin-top:1px;padding-left:55px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-result{font-size:.52em;color:var(--text2);margin-top:2px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 
 /* Activity */
 .activity-item{display:flex;align-items:center;gap:4px;padding:2px 5px;flex-shrink:0;border-radius:2px;font-size:.58em;border-left:2px solid transparent;animation:aslide .3s}

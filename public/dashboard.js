@@ -87,10 +87,10 @@ function renderUsageCost(d) {
 
 function renderCostBars(t) {
   const items = [
-    { label: 'Cache Write', value: t.cacheWriteCost||0, color: 'var(--accent-purple)' },
-    { label: 'Cache Read', value: t.cacheReadCost||0, color: 'var(--accent-cyan)' },
-    { label: 'Output', value: t.outputCost||0, color: 'var(--accent-green)' },
-    { label: 'Input', value: t.inputCost||0, color: 'var(--accent-yellow)' },
+    { label: 'Cache Write', value: t.cacheWriteCost||0, color: '#b366ff' },
+    { label: 'Cache Read', value: t.cacheReadCost||0, color: '#00f0ff' },
+    { label: 'Output', value: t.outputCost||0, color: '#00ff88' },
+    { label: 'Input', value: t.inputCost||0, color: '#ffcc00' },
   ];
   const max = Math.max(...items.map(i => i.value), 0.01);
   $('cost-bars').innerHTML = items.map(i => `
@@ -155,7 +155,7 @@ function renderSessions(d) {
     const shortKey = s.key.replace('agent:main:', '').replace(/:[a-f0-9-]{20,}/g, '').replace(/:\d{6,}/g, '');
     const pct = s.percentUsed ?? 0;
     const tokens = fmtTokens(s.totalTokens);
-    const ctxColor = pct > 70 ? 'var(--accent-red)' : pct > 40 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
+    const ctxColor = pct > 70 ? '#ff3366' : pct > 40 ? '#ffcc00' : '#00f0ff';
     return `
       <div class="session-item">
         <span class="session-channel ${ch}">${ch}</span>
@@ -232,17 +232,17 @@ function renderTaskLog(d) {
     const statusLabel = isActive ? '进行中' : isRecent ? '刚完成' : '已完成';
     const statusClass = isActive ? 'task-active' : isRecent ? 'task-recent' : 'task-done';
 
-    const toolBadge = t.toolCount > 0 ? `<span class="task-tools">🔧${t.toolCount}</span>` : '';
-    const resultLine = t.result ? `<div class="task-result">${esc(t.result)}</div>` : '';
+    const toolBadge = t.toolCount > 0 ? `<span class="task-tools">🔧 ${t.toolCount}</span>` : '';
+    const resultLine = t.result ? `<div class="task-result">→ ${esc(t.result)}</div>` : '';
 
     return `
       <div class="task-item ${statusClass}">
-        <div class="task-main">
+        <div class="task-header">
           <span class="task-time">${startTime}</span>
-          <span class="task-desc">${esc(t.task)}</span>
           ${toolBadge}
           <span class="task-status">${statusLabel}</span>
         </div>
+        <div class="task-desc">${esc(t.task)}</div>
         ${resultLine}
       </div>`;
   }).join('');
