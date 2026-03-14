@@ -51,13 +51,14 @@ updateClock();
 
 // --- Channel type from session key ---
 function detectChannel(session) {
-  const key = session.key || '';
-  if (key.includes('telegram')) return 'telegram';
-  if (key.includes('webchat') || key.includes(':main')) return 'webchat';
-  if (key.includes('wecom')) return 'wecom';
-  if (key.includes('cron')) return 'cron';
-  if (key.includes('feishu')) return 'feishu';
-  if (key.includes('discord')) return 'discord';
+  // Strip agent prefix (e.g. "agent:main:") to avoid false matches
+  const key = (session.key || '').replace(/^agent:[^:]+:/, '');
+  if (key.startsWith('telegram')) return 'telegram';
+  if (key.startsWith('wecom')) return 'wecom';
+  if (key.startsWith('cron')) return 'cron';
+  if (key.startsWith('feishu')) return 'feishu';
+  if (key.startsWith('discord')) return 'discord';
+  if (key.startsWith('webchat') || key === 'main') return 'webchat';
   return 'unknown';
 }
 
@@ -310,14 +311,18 @@ function renderPresence(data) {
     return;
   }
 
-  container.innerHTML = presence.map(p => {
+  // Filter out disconnected and dashboard's own presence
+  const active = presence.filter(p => p.reason !== 'disconnect');
+  container.innerHTML = (active.length > 0 ? active : presence).map(p => {
     const isActive = p.reason !== 'disconnect';
+    const name = p.host || p.deviceId?.slice(0, 12) || 'unknown';
+    const detail = [p.mode, p.platform].filter(Boolean).join(' · ');
     return `
       <div class="presence-item">
         <div class="presence-dot ${isActive ? 'active' : 'inactive'}"></div>
         <div class="presence-info">
-          <div class="presence-name">${escapeHtml(p.host || 'unknown')}</div>
-          <div class="presence-detail">${escapeHtml(p.mode || '')} · ${escapeHtml(p.platform || '')}</div>
+          <div class="presence-name">${escapeHtml(name)}</div>
+          <div class="presence-detail">${escapeHtml(detail)}</div>
         </div>
       </div>
     `;
