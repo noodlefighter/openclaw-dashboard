@@ -16,6 +16,22 @@
         <h1>OPENCLAW</h1>
         <span class="version" id="version">--</span>
       </div>
+      <div class="header-center">
+        <div class="live-counters">
+          <div class="counter">
+            <span class="counter-value" id="cnt-messages">0</span>
+            <span class="counter-label">Messages</span>
+          </div>
+          <div class="counter">
+            <span class="counter-value" id="cnt-tools">0</span>
+            <span class="counter-label">Tool Calls</span>
+          </div>
+          <div class="counter">
+            <span class="counter-value" id="cnt-sessions">0</span>
+            <span class="counter-label">Sessions</span>
+          </div>
+        </div>
+      </div>
       <div class="header-right">
         <div class="status-indicator" id="health-indicator">
           <span class="dot"></span>
@@ -27,7 +43,7 @@
 
     <!-- Main Grid -->
     <div class="grid">
-      <!-- Token Usage Card -->
+      <!-- Token Usage -->
       <div class="card card-wide">
         <div class="card-header">
           <span class="card-icon">📊</span>
@@ -41,7 +57,7 @@
             </div>
             <div class="metric">
               <div class="metric-value accent-green" id="total-cost">--</div>
-              <div class="metric-label">Total Cost (USD)</div>
+              <div class="metric-label">Total Cost</div>
             </div>
             <div class="metric">
               <div class="metric-value accent-cyan" id="cache-rate">--</div>
@@ -49,7 +65,7 @@
             </div>
             <div class="metric">
               <div class="metric-value accent-purple" id="output-tokens">--</div>
-              <div class="metric-label">Output Tokens</div>
+              <div class="metric-label">Output</div>
             </div>
           </div>
           <div class="chart-container">
@@ -58,7 +74,7 @@
         </div>
       </div>
 
-      <!-- Today's Stats -->
+      <!-- Today -->
       <div class="card">
         <div class="card-header">
           <span class="card-icon">⚡</span>
@@ -83,6 +99,14 @@
               <div class="stat-label">Cache Read</div>
             </div>
           </div>
+          <!-- Hourly activity heatmap -->
+          <div class="hourly-heat" id="hourly-heat">
+            <div class="hourly-label">Activity Timeline</div>
+            <div class="hourly-bars" id="hourly-bars"></div>
+            <div class="hourly-labels">
+              <span>0</span><span>6</span><span>12</span><span>18</span><span>23</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -97,7 +121,7 @@
         </div>
       </div>
 
-      <!-- Active Sessions -->
+      <!-- Sessions with context bars -->
       <div class="card card-wide card-tall">
         <div class="card-header">
           <span class="card-icon">🔗</span>
@@ -106,6 +130,18 @@
         </div>
         <div class="card-body">
           <div class="session-list" id="session-list"></div>
+        </div>
+      </div>
+
+      <!-- Live Activity Feed -->
+      <div class="card card-tall">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <span class="card-title">LIVE ACTIVITY</span>
+          <span class="badge pulse" id="activity-count">0</span>
+        </div>
+        <div class="card-body">
+          <div class="activity-feed" id="activity-feed"></div>
         </div>
       </div>
 
@@ -120,7 +156,7 @@
         </div>
       </div>
 
-      <!-- Presence / Devices -->
+      <!-- Devices -->
       <div class="card">
         <div class="card-header">
           <span class="card-icon">📡</span>
@@ -132,7 +168,6 @@
       </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
       <span>🦐 虾折腾 Dashboard</span>
       <span id="last-update">Last update: --</span>
