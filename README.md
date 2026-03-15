@@ -10,15 +10,19 @@ A cyberpunk-style real-time monitoring dashboard for [OpenClaw](https://github.c
 - **Today's Stats** — tokens, cost, output, cache read + hourly activity heatmap
 - **Cost Breakdown** — visual bar chart of cache write/read, output, and input costs
 - **Sessions** — active sessions with channel badges, token counts, and context window usage bars
-- **Task Log** — auto-extracted task summaries from session logs with status indicators
-- **Live Activity** — real-time feed of messages, tool calls, and user interactions
+- **Task Log** — auto-extracted task summaries from session logs with stable, user-intent-based titles and status indicators
+- **Live Activity** — real-time feed of messages, tool calls, and user interactions, with human-readable tool action summaries
 - **Channels & Devices** — health status of connected channels and devices in the header
 
 ## How It Works
 
-The dashboard server connects directly to the OpenClaw Gateway via its **WebSocket protocol** (device auth v3, ed25519 signing). It fetches health, status, and presence data through Gateway RPC calls, and tails session log files for real-time activity tracking.
+The dashboard server connects directly to the OpenClaw Gateway via its **WebSocket protocol** (device auth v3, ed25519 signing). It fetches health, status, presence, and usage-cost data through Gateway RPC calls, and tails session log files for activity tracking.
 
-Usage cost data is collected via the `openclaw gateway usage-cost` CLI command (no RPC method available yet).
+Recent task and activity views are derived from local session transcripts:
+
+- **Live Activity** strips protocol noise (reply tags, injected media hints, heartbeat tokens, etc.) and summarizes tool calls into readable actions such as file reads, edits, command execution, and web lookups.
+- **Task Log** derives stable titles from the user's original request instead of the assistant's final reply, and ignores the dashboard's own summarizer prompt/JSON output when extracting task text.
+- **Task summarization** runs through the Gateway's internal `agent` RPC on a dedicated session (`agent:main:dashboard-task-summarizer`) instead of spawning the CLI, and that session is reset before each summarization run to keep context bounded.
 
 ## Project Structure
 
