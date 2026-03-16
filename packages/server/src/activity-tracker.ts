@@ -105,8 +105,12 @@ export class ActivityTracker {
   async getSnapshot(): Promise<ActivitySnapshot> {
     this._syncRecentFiles();
 
+    const recent = [...this._recentActivity]
+      .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+      .slice(0, 30);
+
     return {
-      recent: this._recentActivity.slice(0, 30),
+      recent,
       stats: { ...this._stats },
       hourlyActivity: [...this._hourlyActivity],
       tasks: await this._extractTasks(),
