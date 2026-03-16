@@ -101,38 +101,68 @@ function shortText(value: unknown, maxLen = 72): string | null {
   return text ? text.slice(0, maxLen) : null;
 }
 
+function shortValue(value: unknown, maxLen = 72): string | null {
+  const path = shortPath(value);
+  if (path) return path;
+
+  if (typeof value === 'string') return shortText(value, maxLen);
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    const items = value.map((item) => shortValue(item, 24)).filter(Boolean).slice(0, 3) as string[];
+    return items.length ? items.join(', ') : `${value.length} items`;
+  }
+  if (value && typeof value === 'object') return '{…}';
+  return null;
+}
+
+function summarizeToolArgs(args: Record<string, unknown>): string | null {
+  const priorityKeys = [
+    'file_path',
+    'path',
+    'command',
+    'query',
+    'url',
+    'sessionKey',
+    'sessionId',
+    'action',
+    'message',
+    'offset',
+    'limit',
+    'model',
+  ];
+
+  const seen = new Set<string>();
+  const parts: string[] = [];
+
+  const pushPart = (key: string) => {
+    if (seen.has(key)) return;
+    seen.add(key);
+    const value = shortValue(args[key], key === 'command' ? 96 : 72);
+    if (!value) return;
+
+    if (key === 'file_path' || key === 'path' || key === 'command' || key === 'query' || key === 'url') {
+      parts.push(value);
+    } else {
+      parts.push(`${key}=${value}`);
+    }
+  };
+
+  for (const key of priorityKeys) {
+    if (key in args) pushPart(key);
+  }
+
+  for (const key of Object.keys(args)) {
+    if (parts.length >= 3) break;
+    pushPart(key);
+  }
+
+  return parts.length ? parts.join(' · ') : null;
+}
+
 export function summarizeToolCall(tool: ToolCall): string {
   const args = (tool.arguments ?? {}) as Record<string, unknown>;
-  const path = shortPath(args.file_path ?? args.path);
-
-  switch (tool.name) {
-    case 'read':
-      return path ? `读取 ${path}` : '读取文件';
-    case 'edit':
-      return path ? `修改 ${path}` : '编辑文件';
-    case 'write':
-      return path ? `写入 ${path}` : '写入文件';
-    case 'exec': {
-      const command = shortText(args.command, 96);
-      return command ? `执行 ${command}` : '执行命令';
-    }
-    case 'web_search': {
-      const query = shortText(args.query, 64);
-      return query ? `搜索 ${query}` : '搜索网页';
-    }
-    case 'web_fetch': {
-      const url = shortText(args.url, 72);
-      return url ? `抓取 ${url}` : '抓取网页';
-    }
-    case 'memory_search': {
-      const query = shortText(args.query, 64);
-      return query ? `检索记忆：${query}` : '检索记忆';
-    }
-    case 'memory_get':
-      return path ? `读取记忆 ${path}` : '读取记忆';
-    default:
-      return tool.name;
-  }
+  const summary = summarizeToolArgs(args);
+  return summary ? `${tool.name} · ${summary}` : tool.name;
 }
 
 export function parseMessageContent(msg: Message): ParsedContent {
