@@ -17,7 +17,8 @@ import { TaskSummarizer } from './task-summarizer.js';
 const MAX_RECENT_ACTIVITY = 100;
 const HISTORY_LOOKBACK_MS = 24 * 3600 * 1000;
 const TASK_LOOKBACK_MS = 48 * 3600 * 1000;
-const HISTORY_READ_BYTES = 128 * 1024;
+const HISTORY_READ_BYTES = 2 * 1024 * 1024;
+const TASK_HEAD_READ_BYTES = 512 * 1024;
 const TAIL_READ_BYTES = 64 * 1024;
 
 export interface ActivityItem {
@@ -305,7 +306,7 @@ export class ActivityTracker {
     try {
       const stat = fs.statSync(filePath);
       const isActive = filePath.endsWith('.jsonl');
-      const headLines = readFileRegionLines(filePath, 0, HISTORY_READ_BYTES);
+      const headLines = readFileRegionLines(filePath, 0, TASK_HEAD_READ_BYTES);
       const tailOffset = Math.max(0, stat.size - TAIL_READ_BYTES);
       const tailLines = tailOffset > 0 ? readFileRegionLines(filePath, tailOffset, TAIL_READ_BYTES) : [];
 
@@ -314,7 +315,8 @@ export class ActivityTracker {
       let lastTs: string | null = null;
       let totalToolCalls = 0;
       let lastAssistantSummary = '';
-      let sawAssistantAfterUser = false;
+      let collectingTaskWindow = false;
+      let sawAssistantAfterTaskStart = false;
 
       for (const entry of parseJsonLines(headLines)) {
         if (entry.type !== 'message') continue;
@@ -322,25 +324,34 @@ export class ActivityTracker {
         const ts = entry.timestamp as string;
         lastTs = ts;
 
-        if ((msg as { role: string }).role === 'user' && !sawAssistantAfterUser) {
+        if ((msg as { role: string }).role === 'user') {
           const { text: rawText } = parseMessageContent(msg as { role: string; content: string });
           if (isDashboardSummaryPrompt(rawText)) continue;
 
           const text = extractUserText(rawText, 160);
-          if (text && !text.startsWith('A new session was started')) {
-            if (!firstUserTs) firstUserTs = ts;
-            if (initialUserTexts.length < 3) initialUserTexts.push(text);
+          if (!text || text.startsWith('A new session was started')) continue;
+
+          if (!collectingTaskWindow) {
+            collectingTaskWindow = true;
+            firstUserTs = ts;
+          }
+
+          if (!sawAssistantAfterTaskStart && initialUserTexts.length < 3) {
+            initialUserTexts.push(text);
           }
         }
 
         if ((msg as { role: string }).role === 'assistant') {
-          if (initialUserTexts.length > 0) sawAssistantAfterUser = true;
           const { text, toolCalls } = parseMessageContent(msg as { role: string; content: string });
           if (isDashboardSummaryPrompt(text) || isDashboardSummaryResult(text)) continue;
 
           totalToolCalls += toolCalls.length;
           const summary = extractAssistantSummary(text);
           if (summary) lastAssistantSummary = summary;
+
+          if (collectingTaskWindow && initialUserTexts.length > 0) {
+            sawAssistantAfterTaskStart = true;
+          }
         }
       }
 
