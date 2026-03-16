@@ -28,7 +28,7 @@ export function TaskLogCard({ tasks }: TaskLogCardProps) {
 function TaskRow({ task: t }: { task: TaskItem }) {
   const now = Date.now();
   const elapsed = now - new Date(t.lastActivityAt).getTime();
-  const isActive = elapsed < 15 * 60 * 1000;
+  const isActive = t.isActive;
   const isRecent = elapsed < 2 * 3600 * 1000;
 
   const statusClass = isActive ? 'task-active' : isRecent ? 'task-recent' : 'task-done';

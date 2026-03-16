@@ -96,6 +96,7 @@ export interface TaskItem {
   task: string;
   startedAt: string;
   lastActivityAt: string;
+  isActive: boolean;
   toolCount: number;
   result: string | null;
   sessionFile: string;

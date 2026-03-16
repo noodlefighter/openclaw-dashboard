@@ -42,6 +42,7 @@ export interface TaskItem {
   task: string;
   startedAt: string;
   lastActivityAt: string;
+  isActive: boolean;
   toolCount: number;
   result: string | null;
   sessionFile: string;
@@ -301,6 +302,7 @@ export class ActivityTracker {
   private _extractTaskFromFile(filePath: string): TaskItem | null {
     try {
       const stat = fs.statSync(filePath);
+      const isActive = filePath.endsWith('.jsonl');
       const headLines = readFileRegionLines(filePath, 0, HISTORY_READ_BYTES);
       const tailOffset = Math.max(0, stat.size - TAIL_READ_BYTES);
       const tailLines = tailOffset > 0 ? readFileRegionLines(filePath, tailOffset, TAIL_READ_BYTES) : [];
@@ -366,6 +368,7 @@ export class ActivityTracker {
         task: taskText,
         startedAt: firstUserTs,
         lastActivityAt: lastTs || firstUserTs,
+        isActive,
         toolCount: totalToolCalls,
         result,
         sessionFile,
