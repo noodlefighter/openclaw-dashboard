@@ -20,6 +20,7 @@ const TASK_LOOKBACK_MS = 48 * 3600 * 1000;
 const HISTORY_READ_BYTES = 2 * 1024 * 1024;
 const TASK_HEAD_READ_BYTES = 512 * 1024;
 const TAIL_READ_BYTES = 64 * 1024;
+const TASK_ACTIVE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
 export interface ActivityItem {
   type: 'tool_call' | 'message' | 'user_message';
@@ -80,6 +81,7 @@ export class ActivityTracker {
   private _stats: ActivityStats = { messages: 0, toolCalls: 0, errors: 0, lastActivityAt: null };
   private _hourlyActivity = new Array<number>(24).fill(0);
   private _taskSummarizer = new TaskSummarizer();
+  private _activitySeq = 0;
 
   start(): void {
     this._loadHistory();
@@ -109,7 +111,7 @@ export class ActivityTracker {
     this._syncRecentFiles();
 
     const recent = [...this._recentActivity]
-      .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+      .sort((a, b) => this._compareActivityDesc(a, b))
       .slice(0, 30);
 
     return {
@@ -127,7 +129,7 @@ export class ActivityTracker {
         this._loadRecentFromFile(filePath);
       }
 
-      this._recentActivity.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+      this._recentActivity.sort((a, b) => this._compareActivityDesc(a, b));
       this._recentActivity = this._recentActivity.slice(0, MAX_RECENT_ACTIVITY);
       console.log(`[activity] Loaded ${this._recentActivity.length} historical events`);
     } catch (err) {
@@ -258,6 +260,18 @@ export class ActivityTracker {
     }
   }
 
+  private _compareActivityDesc(a: ActivityItem, b: ActivityItem): number {
+    const tsDelta = new Date(b.ts).getTime() - new Date(a.ts).getTime();
+    return tsDelta || b.seq - a.seq;
+  }
+
+  private _isTaskActive(lastActivityAt: string, isSessionFileActive: boolean): boolean {
+    if (!isSessionFileActive) return false;
+    const lastActivityMs = new Date(lastActivityAt).getTime();
+    if (!Number.isFinite(lastActivityMs)) return false;
+    return Date.now() - lastActivityMs <= TASK_ACTIVE_IDLE_TIMEOUT_MS;
+  }
+
   private _syncRecentFiles(): void {
     try {
       const recentFiles = this._listSessionFiles(HISTORY_LOOKBACK_MS);
@@ -305,7 +319,7 @@ export class ActivityTracker {
   private _extractTaskFromFile(filePath: string): TaskItem | null {
     try {
       const stat = fs.statSync(filePath);
-      const isActive = filePath.endsWith('.jsonl');
+      const isSessionFileActive = filePath.endsWith('.jsonl');
       const headLines = readFileRegionLines(filePath, 0, TASK_HEAD_READ_BYTES);
       const tailOffset = Math.max(0, stat.size - TAIL_READ_BYTES);
       const tailLines = tailOffset > 0 ? readFileRegionLines(filePath, tailOffset, TAIL_READ_BYTES) : [];
@@ -381,7 +395,7 @@ export class ActivityTracker {
         task: taskText,
         startedAt: firstUserTs,
         lastActivityAt: lastTs || firstUserTs,
-        isActive,
+        isActive: this._isTaskActive(lastTs || firstUserTs, isSessionFileActive),
         toolCount: totalToolCalls,
         result,
         sessionFile,

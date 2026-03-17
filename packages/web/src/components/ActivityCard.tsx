@@ -18,7 +18,7 @@ export function ActivityCard({ recent }: ActivityCardProps) {
           {recent.length === 0 ? (
             <div className="empty">Waiting for activity...</div>
           ) : (
-            recent.map((a) => <ActivityRow key={a.ts + a.type + a.session} activity={a} />)
+            recent.map((a) => <ActivityRow key={a.seq} activity={a} />)
           )}
         </div>
       </div>
