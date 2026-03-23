@@ -38,6 +38,7 @@ if (sessionsDirs.length === 0 && configuredAgents.length > 0) {
 
 export const config = {
   port: Number(process.env.PORT) || 3210,
+  gwHost: process.env.GW_HOST || '127.0.0.1',
   gwPort: Number(process.env.GW_PORT || process.env.OPENCLAW_GATEWAY_PORT) || 18789,
   identityFile: path.join(process.cwd(), '.device-identity.json'),
   agentsHome: AGENTS_HOME,

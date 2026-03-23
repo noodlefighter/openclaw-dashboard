@@ -74,8 +74,8 @@ process.on('unhandledRejection', (err) => console.error('[rejection]', (err as E
 
 // ── Start ──────────────────────────────────────────────────
 
-server.listen(config.port, '127.0.0.1', () => {
-  console.log(`[dashboard] 🦐 http://127.0.0.1:${config.port}`);
+server.listen(config.port, '0.0.0.0', () => {
+  console.log(`[dashboard] 🦐 http://0.0.0.0:${config.port}`);
   console.log(`[dashboard] Configured agents: ${config.allAgents.join(', ')} (${config.allAgents.length} total)`);
   console.log(`[dashboard] Active agents (sessions found at startup): ${config.dashboardAgents.join(', ')} (${config.dashboardAgents.length} total)`);
   gw.connect();
